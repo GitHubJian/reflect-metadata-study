@@ -27,7 +27,6 @@ function Inject(token) {
     token = token || Reflect.getMetadata('design:type', target, key)
     const type = token && sharedUtils.isFunction(token) ? token.name : token
     if (!sharedUtils.isUndefined(index)) {
-      debugger
       let dependencies =
         Reflect.getMetadata(constants.SELF_DECLARED_DEPS_METADATA, target) || []
 
@@ -61,16 +60,36 @@ class OtherService {
   }
 }
 
-@Injectable()
-@Dependencies(OtherService)
-class TestService {
-  constructor() {}
-  
-  @Inject('OtherServer')
-  otherService
+class OtherService2 {
+  constructor() {
+    this.b = 2
+  }
+}
 
+function RequestMapping(metadata){
+  const pathMetada
+}
+
+function createMappingDecorator(method) {
+  return function(path) {
+
+  }
+}
+
+function Get() {}
+
+@Injectable()
+@Dependencies(OtherService, OtherService2)
+class TestService {
+  constructor(otherService, otherService2) {
+    this.otherService = otherService
+    this.otherService2 = otherService2
+  }
+
+  @Get()
   testMethod() {
-    console.log('over')
+    console.log(this.otherService.a)
+    console.log(this.otherService2.b)
   }
 }
 
