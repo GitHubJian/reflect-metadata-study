@@ -23,8 +23,8 @@ class AppController {
 
   @Get(':id')
   @Header('Author', 'xiaows')
-  @Param('id')
-  @UsePipes(new AppPipe())
+  // @Param('id')
+  // @UsePipes(new AppPipe())
   getHello(id) {
     return this.appService.getHello()
   }

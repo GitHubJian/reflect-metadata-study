@@ -59,7 +59,7 @@ class Application extends ApplicationContext {
   }
 
   async registerRouterHooks() {
-    // this.routesResolver.registerMountRouter(this.httpAdapter)
+    this.routesResolver.registerMountRouter(this.httpAdapter)
     this.routesResolver.registerNotFoundHandler()
     this.routesResolver.registerExceptionHandler()
   }

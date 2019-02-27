@@ -55,8 +55,10 @@ class RoutesResolver {
   }
 
   registerNotFoundHandler() {
+    debugger
     const applicationRef = this.container.getApplicationRef()
     const callback = ctx => {
+      debugger
       const method = applicationRef.getRequestMethod(ctx)
       const url = applicationRef.getRequestUrl(ctx)
 
@@ -74,10 +76,10 @@ class RoutesResolver {
       throw this.mapExternalException(err)
     }
 
-    const handler = this.routerExceptionsFilter.create({}, callback, undefined);
-    const proxy 
-    const applicationRef = this.container.getApplicationRef();
-        applicationRef.setErrorHandler && applicationRef.setErrorHandler(proxy);
+    const handler = this.routerExceptionsFilter.create({}, callback, undefined)
+    const proxy = this.routerProxy.createExceptionLayerProxy(callback, handler)
+    const applicationRef = this.container.getApplicationRef()
+    applicationRef.setErrorHandler && applicationRef.setErrorHandler(proxy)
   }
 
   mapExternalException(err) {
