@@ -1,4 +1,5 @@
 const Injectable = require('../../src/common/decorators/core/injectable.decorator')
+const PipeTransformImplement = require('../../src/common/implements/pipe-transform.implement')
 
 class BadRequestException extends Error {
   constructor(msg) {
@@ -12,13 +13,9 @@ class BadRequestException extends Error {
 }
 
 @Injectable()
-class AppPipe {
+class AppPipe extends PipeTransformImplement {
   transform(value, metadata) {
-    if (value !== 2) {
-      throw new BadRequestException('Validation failed')
-    }
-
-    return value
+    return value + 'abc'
   }
 }
 

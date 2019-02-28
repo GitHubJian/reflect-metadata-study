@@ -1,12 +1,11 @@
 const ApplicationContext = require('./application-context')
 const SharedUtils = require('../common/utils/shared.utils')
-const Http = require('http')
 const RoutesResolver = require('./router/routes-resolver')
-const MiddlewareContainer = require('./middleware/middleware-module')
+const MiddlewareContainer = require('./middleware/container')
+const MiddlewareModule = require('./middleware/middleware-module')
 const LoggerService = require('../common/services/logger.service')
 const Constants = require('../core/constants')
 const Koa = require('koa')
-const KoaRouter = require('koa-router')
 
 class Application extends ApplicationContext {
   constructor(container, httpAdapter, config, appOptions = {}) {
@@ -15,16 +14,24 @@ class Application extends ApplicationContext {
     this.config = config
     this.appOptions = appOptions
     this.logger = new LoggerService(Application.name, true)
-    this.middlewareModule = new MiddlewareContainer()
+    this.middlewareModule = new MiddlewareModule()
+    this.middlewareContainer = new MiddlewareContainer()
     this.isInitialized = false
-
+    this.applyOptions()
+    this.selectContextModule()
     this.registerHttpServer()
     this.routesResolver = new RoutesResolver(this.container, this.config)
+  }
+
+  getHttpAdapter() {
+    return this.httpAdapter
   }
 
   registerHttpServer() {
     this.httpServer = this.createServer()
   }
+
+  applyOptions() {}
 
   createServer() {
     const server = new Koa()
@@ -34,7 +41,7 @@ class Application extends ApplicationContext {
   }
 
   async init() {
-    // await this.registerModules()
+    await this.registerModules()
     await this.registerRouter()
     await this.registerRouterHooks()
 

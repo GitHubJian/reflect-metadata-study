@@ -2,8 +2,8 @@ const Injectable = require('../../src/common/decorators/core/injectable.decorato
 
 @Injectable()
 class AppService {
-  getHello() {
-    return 'Hello world1111!'
+  getHello(id) {
+    return `Hello world! id=${id}`
   }
 }
 

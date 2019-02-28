@@ -1,8 +1,9 @@
 const HttpException = require('../../common/exceptions/http.exception')
 const HttpStatusEnum = require('../../common/enums/http-status.enum')
-const Constants = require('../../common/constants')
+const Constants = require('../constants')
 const SharedUtils = require('../../common/utils/shared.utils')
 const LoggerService = require('../../common/services/logger.service')
+const ImplementException = require('../../common/exceptions/implement.exception')
 
 class BaseExceptionFilter {
   constructor(applicationRef) {
@@ -14,13 +15,35 @@ class BaseExceptionFilter {
       this.applicationRef ||
       (this.applicationRefHost && this.applicationRefHost.applicationRef)
 
-    if (!(exception instanceof HttpException)) {
+    if (exception instanceof ImplementException) {
       const body = {
         statusCode: HttpStatusEnum.INTERNAL_SERVER_ERROR,
-        message: Constants.MESSAGE.UNKNOWN_EXCEPTION_MESSAGE
+        message: exception.message
       }
 
-      applicationRef.reply(host.getArgByIndex(1), body, body.statusCode)
+      applicationRef.reply(host.getArgs(), body, body.statusCode)
+
+      return
+    } else if (exception instanceof HttpException) {
+      const res = exception.getResponse()
+      const message = SharedUtils.isObject(res)
+        ? res
+        : {
+            statusCode: exception.getStatus(),
+            message: res
+          }
+
+      applicationRef.reply(host.getArgs(), message, exception.getStatus())
+
+      return
+    } else {
+      const body = {
+        statusCode: HttpStatusEnum.INTERNAL_SERVER_ERROR,
+        message: Constants.MESSAGES.UNKNOWN_EXCEPTION_MESSAGE
+      }
+
+      applicationRef.reply(host.getArgs(), body, body.statusCode)
+
       if (this.isExceptionObject(exception)) {
         return BaseExceptionFilter.logger.error(
           exception.message,
@@ -30,16 +53,6 @@ class BaseExceptionFilter {
 
       return BaseExceptionFilter.logger.error(exception)
     }
-
-    const res = exception.getResponse()
-    const message = SharedUtils.isObject(res)
-      ? res
-      : {
-          statusCode: exception.getStatus(),
-          message: res
-        }
-
-    applicationRef.reply(host.getArgs(), message, exception.getStatus())
   }
 
   isExceptionObject(err) {

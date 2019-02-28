@@ -3,7 +3,7 @@ const Constants = require('../../common/constants')
 const SharedUtils = require('../../common/utils/shared.utils')
 const Iterare = require('iterare')
 
-class PipesContextCreator extends ContextCreator {
+class GuardsContextCreator extends ContextCreator {
   constructor(container, config) {
     super()
     this.container = container
@@ -13,7 +13,7 @@ class PipesContextCreator extends ContextCreator {
   create(instance, callback, module) {
     this.moduleContext = module
 
-    return this.createContext(instance, callback, Constants.PIPES_METADATA)
+    return this.createContext(instance, callback, Constants.GUARDS_METADATA)
   }
 
   createConcreteContext(metadata) {
@@ -22,45 +22,35 @@ class PipesContextCreator extends ContextCreator {
     }
 
     return Iterare.default(metadata)
-      .filter(pipe => pipe && (pipe.name || pipe.transform))
-      .map(pipe => this.getPipeInstance(pipe))
-      .filter(
-        pipe => pipe && pipe.transform && SharedUtils.isFunction(pipe.transform)
-      )
-      .map(pipe => pipe.transform.bind(pipe))
+      .filter(guard => guard && (guard.name || guard.canActivate))
+      .map(guard => this.getGuardInstance(guard))
+      .filter(guard => guard && SharedUtils.isFunction(guard.canActivate))
       .toArray()
   }
 
-  getPipeInstance(pipe) {
-    const isObject = pipe.transform
+  getGuardInstance(guard) {
+    const isObject = guard.canActivate
     if (isObject) {
-      return pipe
+      return guard
     }
 
-    const instanceWrapper = this.getInstanceByMetatype(pipe)
-
+    const instanceWrapper = this.getInstanceByMetatype(guard)
     return instanceWrapper && instanceWrapper.instance
       ? instanceWrapper.instance
       : null
   }
 
-  getInstanceByMetatype(metatype) {
+  getInstanceByMetatype(guard) {
     if (!this.moduleContext) {
       return undefined
     }
-
     const collection = this.container.getModules()
     const module = collection.get(this.moduleContext)
     if (!module) {
       return undefined
     }
-
-    return module.injectables.get(metatype.name)
-  }
-
-  setModuleContext(context) {
-    this.moduleContext = context
+    return module.injectables.get(guard.name)
   }
 }
 
-module.exports = PipesContextCreator
+module.exports = GuardsContextCreator

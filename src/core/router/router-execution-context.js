@@ -3,12 +3,16 @@ const ContextUtils = require('../helpers/context-utils')
 const RouterResponseController = require('./router-response-controller')
 const SharedUtils = require('../../common/utils/shared.utils')
 const RouteParamtypesEnum = require('../../common/enums/route-paramtypes.enum')
+const ForbiddenException = require('../../common/exceptions/forbidden.exception')
+const Constants2 = require('../guards/constants')
 
 class RouterExecutionContext {
   constructor(
     paramsFactory,
     pipesContextCreator,
     pipesConsumer,
+    guardsContextCreator,
+    guardsConsumer,
     interceptorsContextCreator,
     interceptorsConsumer,
     applicationRef
@@ -16,6 +20,8 @@ class RouterExecutionContext {
     this.paramsFactory = paramsFactory
     this.pipesContextCreator = pipesContextCreator
     this.pipesConsumer = pipesConsumer
+    this.guardsContextCreator = guardsContextCreator
+    this.guardsConsumer = guardsConsumer
     this.interceptorsContextCreator = interceptorsContextCreator
     this.interceptorsConsumer = interceptorsConsumer
     this.applicationRef = applicationRef
@@ -37,7 +43,7 @@ class RouterExecutionContext {
       instance,
       methodName
     )
-    // const guards = this.guardsContextCreator.create(instance, callback, module)
+    const guards = this.guardsContextCreator.create(instance, callback, module)
     const interceptors = this.interceptorsContextCreator.create(
       instance,
       callback,
@@ -57,7 +63,7 @@ class RouterExecutionContext {
     const httpStatusCode = httpCode
       ? httpCode
       : this.responseController.getStatusByMethod(requestMethod)
-    // const fnCanActivate = this.createGuardsFn(guards, instance, callback)
+    const fnCanActivate = this.createGuardsFn(guards, instance, callback)
     const fnApplyPipes = this.createPipesFn(pipes, paramsOptions)
     const fnHandleResponse = this.createHandleResponseFn(
       callback,
@@ -71,6 +77,7 @@ class RouterExecutionContext {
 
     return async (ctx, next) => {
       const args = this.contextUtils.createNullArray(argsLength)
+      fnCanActivate && (await fnCanActivate(ctx))
       const result = await this.interceptorsConsumer.intercept(
         interceptors,
         ctx,
@@ -78,6 +85,7 @@ class RouterExecutionContext {
         callback,
         handler(args, ctx, next)
       )
+
       await fnHandleResponse(result, ctx)
     }
   }
@@ -92,9 +100,20 @@ class RouterExecutionContext {
 
   exchangeKeysForValues(keys, metadata, moduleContext) {
     this.pipesContextCreator.setModuleContext(moduleContext)
+
     return keys.map(key => {
-      const { index, data } = metadata[key]
+      const { index, data, pipes: pipesCollection } = metadata[key]
+      const pipes = this.pipesContextCreator.createConcreteContext(
+        pipesCollection
+      )
       const type = this.contextUtils.mapParamType(key)
+
+      if (key.includes(Constants.CUSTOM_ROUTE_AGRS_METADATA)) {
+        const { factory } = metadata[key]
+        const customExtractValue = this.getCustomFactory(factory, data)
+
+        return { index, extractValue: customExtractValue, type, data, pipes }
+      }
 
       const numericType = Number(type)
       const extractValue = (ctx, next) =>
@@ -102,8 +121,14 @@ class RouterExecutionContext {
           ctx,
           next
         })
-      return { index, extractValue, type: numericType, data }
+      return { index, extractValue, type: numericType, data, pipes }
     })
+  }
+
+  getCustomFactory(factory, data) {
+    return SharedUtils.isFunction(factory)
+      ? (ctx, next) => factory(data, ctx)
+      : () => null
   }
 
   async getParamValue(value, { metatype, type, data }, transforms) {
@@ -123,6 +148,23 @@ class RouterExecutionContext {
     return Promise.resolve(value)
   }
 
+  createGuardsFn(guards, instance, callback) {
+    const canActivateFn = async args => {
+      const canActivate = await this.guardsConsumer.tryActivate(
+        guards,
+        args,
+        instance,
+        callback
+      )
+
+      if (!canActivate) {
+        throw new ForbiddenException(Constants2.FORBIDDEN_MESSAGE)
+      }
+    }
+
+    return guards.length ? canActivateFn : null
+  }
+
   createPipesFn(pipes, paramsOptions) {
     const pipesFn = async (args, ctx, next) => {
       await Promise.all(
@@ -135,8 +177,8 @@ class RouterExecutionContext {
             metatype,
             pipes: paramPipes
           } = param
-
           const value = extractValue(ctx, next)
+
           args[index] = await this.getParamValue(
             value,
             { metatype, type, data },

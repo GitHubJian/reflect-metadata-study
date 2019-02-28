@@ -15,7 +15,7 @@ class PipesConsumer {
     return transforms.reduce(async (defferedValue, fn) => {
       const val = await defferedValue
       const result = fn(val, { metatype, type, data })
-
+      
       return result
     }, Promise.resolve(value))
   }

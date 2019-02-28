@@ -22,6 +22,7 @@ class RoutesResolver {
       new MetadataScanner(),
       this.container,
       this.routerProxy,
+      this.routerExceptionsFilter,
       this.config
     )
 

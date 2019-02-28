@@ -9,6 +9,8 @@ const Messages = require('../helpers/messages')
 const InterceptorsConsumer = require('../interceptors/interceptors-consumer')
 const PipesContextCreator = require('../pipes/pipes-context-creator')
 const PipesConsumer = require('../pipes/pipes-consumer')
+const GuardsContextCreator = require('../guards/guards-context-creator')
+const GuardsConsumer = require('../guards/guards-consumer')
 
 class RouterExplorer {
   constructor(
@@ -29,6 +31,8 @@ class RouterExplorer {
       new RouteParamsFactory(),
       new PipesContextCreator(container, config),
       new PipesConsumer(),
+      new GuardsContextCreator(container, config),
+      new GuardsConsumer(),
       new InterceptorsContextCreator(container, config),
       new InterceptorsConsumer(),
       container.getApplicationRef()
@@ -152,12 +156,13 @@ class RouterExplorer {
       module,
       requestMethod
     )
-    // const exceptionFilter = this.exceptionsFilter.create(
-    //   instance,
-    //   callback,
-    //   module
-    // )
-    return this.routerProxy.createProxy(executionContext)
+    const exceptionFilter = this.exceptionsFilter.create(
+      instance,
+      callback,
+      module
+    )
+
+    return this.routerProxy.createProxy(executionContext, exceptionFilter)
   }
 }
 

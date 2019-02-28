@@ -32,9 +32,9 @@ function createRouteParamDecorator(paramtype) {
   }
 }
 
-function createPipesRouteParamDecorator(paramtype) {
+function createPipesRouteParamDecorator(paramtype, index) {
   return function(data, ...pipes) {
-    return function(target, key, index) {
+    return function(target, key, descriptor) {
       const args =
         Reflect.getMetadata(
           Constants.ROUTE_ARGS_METADATA,
@@ -68,8 +68,8 @@ function Body(property, ...pipes) {
   )
 }
 
-function Param(property, ...pipes) {
-  return createPipesRouteParamDecorator(RouteParamtypesEnum.PARAM)(
+function Param(property, index, ...pipes) {
+  return createPipesRouteParamDecorator(RouteParamtypesEnum.PARAM, index)(
     property,
     ...pipes
   )

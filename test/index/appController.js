@@ -6,11 +6,12 @@ const UsePipes = require('../../src/common/decorators/core/use-pipes.decorator')
 const {
   Param
 } = require('../../src/common/decorators/http/route-params.decorator')
-
 const {
   Get
 } = require('../../src/common/decorators/http/request-mapping.descorator')
+const UseGuards = require('../../src/common/decorators/core/use-guards.decorator')
 
+const AppGuard = require('./appGuard')
 const AppPipe = require('./appPipe')
 
 const AppService = require('./appService')
@@ -21,12 +22,13 @@ class AppController {
   @Inject(AppService)
   appService
 
+  @UseGuards(new AppGuard())
+  @UsePipes(new AppPipe())
   @Get(':id')
   @Header('Author', 'xiaows')
-  // @Param('id')
-  // @UsePipes(new AppPipe())
-  getHello(id) {
-    return this.appService.getHello()
+  @Param('id', 2)
+  getHello(id, a, b) {
+    return this.appService.getHello(b)
   }
 }
 

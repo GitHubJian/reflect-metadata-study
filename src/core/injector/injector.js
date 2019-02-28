@@ -4,7 +4,20 @@ const RuntimeException = require('../errors/exceptions/runtime.exception')
 const UndefinedDependencyException = require('../errors/exceptions/undefined-dependency.exception')
 
 class Injector {
-  async loadInstanceOfMiddleware() {}
+  async loadInstanceOfMiddleware(wrapper, collection, module) {
+    const { metatype } = wrapper
+    const currentMetatype = collection.get(metatype.name)
+    if (currentMetatype.instance !== null) {
+      return
+    }
+
+    await this.resolveConstructorParams(wrapper, module, null, instances => {
+      collection.set(metatype.name, {
+        instance: new metatype(...instances),
+        metatype
+      })
+    })
+  }
 
   async loadInstanceOfRoute(wrapper, module) {
     const routes = module.routes

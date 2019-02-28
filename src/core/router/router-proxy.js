@@ -6,6 +6,7 @@ class RouterProxy {
       try {
         await targetCallback(ctx, next)
       } catch (e) {
+        debugger
         const host = new ExecutionContextHost(ctx)
         exceptionsHandler.next(e, host)
       }
