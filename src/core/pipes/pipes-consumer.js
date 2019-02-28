@@ -13,7 +13,6 @@ class PipesConsumer {
 
   async applyPipes(value, { metatype, type, data }, transforms) {
     return transforms.reduce(async (defferedValue, fn) => {
-      debugger
       const val = await defferedValue
       const result = fn(val, { metatype, type, data })
 

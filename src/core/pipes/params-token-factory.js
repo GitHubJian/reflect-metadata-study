@@ -2,7 +2,6 @@ const RouteParamtypesEnum = require('../../common/enums/route-paramtypes.enum')
 
 class ParamsTokenFactory {
   exchangeEnumForString(type) {
-    debugger
     switch (type) {
       case RouteParamtypesEnum.BODY:
         return 'body'

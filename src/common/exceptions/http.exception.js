@@ -1,9 +1,9 @@
 class HttpException extends Error {
-  constructor(ctx, status) {
+  constructor(response, status) {
     super()
-    this.response = ctx.res
+    this.response = response
     this.status = status
-    this.message = ctx.res
+    this.message = response
   }
 
   getResponse() {

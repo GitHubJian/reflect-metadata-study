@@ -68,9 +68,8 @@ class RouterExecutionContext {
       fnApplyPipes && (await fnApplyPipes(args, ctx, next))
       return callback.apply(instance, args)
     }
-    debugger
+
     return async (ctx, next) => {
-      debugger
       const args = this.contextUtils.createNullArray(argsLength)
       const result = await this.interceptorsConsumer.intercept(
         interceptors,
@@ -136,14 +135,13 @@ class RouterExecutionContext {
             metatype,
             pipes: paramPipes
           } = param
-          debugger
+
           const value = extractValue(ctx, next)
           args[index] = await this.getParamValue(
             value,
             { metatype, type, data },
             pipes.concat(paramPipes)
           )
-          debugger
         })
       )
     }

@@ -5,7 +5,6 @@ const Operators = require('rxjs/operators')
 
 class InterceptorsConsumer {
   async intercept(interceptors, args, instance, callback, next) {
-    debugger
     if (SharedUtils.isEmpty(interceptors)) {
       return next()
     }

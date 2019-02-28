@@ -11,10 +11,9 @@ class RouterExceptionFilters extends BaseExceptionFilterContext {
   }
 
   create(instance, callback, module) {
-    debugger
     this.moduleContext = module
     const exceptionHandler = new ExceptionsHandler(this.applicationRef)
-    const filters = this.createContext(
+    const filters = this. createContext(
       instance,
       callback,
       Constants.EXCEPTION_FILTERS_METADATA

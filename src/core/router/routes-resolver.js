@@ -55,10 +55,8 @@ class RoutesResolver {
   }
 
   registerNotFoundHandler() {
-    debugger
     const applicationRef = this.container.getApplicationRef()
     const callback = ctx => {
-      debugger
       const method = applicationRef.getRequestMethod(ctx)
       const url = applicationRef.getRequestUrl(ctx)
 

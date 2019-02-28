@@ -39,7 +39,7 @@ class BaseExceptionFilter {
           message: res
         }
 
-    applicationRef.reply(host.getArgByIndex(1), message, exception.getStatus())
+    applicationRef.reply(host.getArgs(), message, exception.getStatus())
   }
 
   isExceptionObject(err) {
