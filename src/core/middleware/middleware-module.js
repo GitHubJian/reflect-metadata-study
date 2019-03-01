@@ -24,6 +24,7 @@ class MiddlewareModule {
   }
 
   async resolveMiddleware(middlewareContainer, modules) {
+    debugger
     await Promise.all(
       [...modules.entries()].map(async ([name, module]) => {
         const instance = module.instance

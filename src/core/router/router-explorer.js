@@ -21,8 +21,9 @@ class RouterExplorer {
     config
   ) {
     this.metadataScanner = metadataScanner
-    this.exceptionsFilter = exceptionsFilter
+    this.container = container
     this.routerProxy = routerProxy
+    this.exceptionsFilter = exceptionsFilter
     this.config = config
 
     this.routerMethodFactory = new RouterMethodFactory()

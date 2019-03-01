@@ -1,6 +1,6 @@
 const ImplementException = require('../exceptions/implement.exception')
 
-class Middleware {
+class MiddlewareImplement {
   /**
    * @returns {Function} 
    * (ctx, next) => {
@@ -8,8 +8,8 @@ class Middleware {
    * }
    */
   resolve(...args) {
-    throw new ImplementException('Middleware.resolve')
+    throw new ImplementException('MiddlewareImplement.resolve')
   }
 }
 
-module.exports = Middleware
+module.exports = MiddlewareImplement

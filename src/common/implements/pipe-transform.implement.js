@@ -3,7 +3,7 @@
  */
 const ImplementException = require('../exceptions/implement.exception')
 
-class PipeTransform {
+class PipeTransformImplement {
   constructor() {}
   /**
    *
@@ -14,8 +14,8 @@ class PipeTransform {
    *        data?: string;
    */
   transform(value, metadata) {
-    throw new ImplementException(`PipeTransform.transform`)
+    throw new ImplementException(`PipeTransformImplement.transform`)
   }
 }
 
-module.exports = PipeTransform
+module.exports = PipeTransformImplement

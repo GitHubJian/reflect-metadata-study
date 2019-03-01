@@ -41,7 +41,8 @@ class DependenciesScanner {
 
     components.forEach(component => {
       this.storeComponent(component, token)
-      // this.reflectComponentMetadata(component, token)
+      debugger
+      this.reflectComponentMetadata(component, token)
     })
   }
 

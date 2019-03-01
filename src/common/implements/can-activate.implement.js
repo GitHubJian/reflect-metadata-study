@@ -1,13 +1,13 @@
 const ImplementException = require('../exceptions/implement.exception')
 
-class CanActivate {
+class CanActivateImplement {
   /**
    * @param {ExecutionContext} context
    * @returns {Boolean}
    */
   canActivate(context) {
-    throw new ImplementException('CanActivate.canActivate')
+    throw new ImplementException('CanActivateImplement.canActivate')
   }
 }
 
-module.exports = CanActivate
+module.exports = CanActivateImplement

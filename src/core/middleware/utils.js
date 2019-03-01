@@ -5,7 +5,7 @@ function filterMiddleware(middleware) {
   return []
     .concat(middleware)
     .filter(SharedUtils.isFunction)
-    .map(exports.mapToClass)
+    .map(mapToClass)
 }
 
 function mapToClass(middleware) {
