@@ -17,7 +17,7 @@ class GuardsConsumer {
 
       return false
     }
-
+    
     return true
   }
 

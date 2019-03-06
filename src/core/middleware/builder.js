@@ -11,7 +11,6 @@ class MiddlewareBuilder {
   }
 
   apply(...middleware) {
-    debugger
     return new MiddlewareBuilder.ConfigProxy(this, flatten(middleware))
   }
 
@@ -55,7 +54,6 @@ MiddlewareBuilder.ConfigProxy = class {
   }
 
   forRoutes(...routes) {
-    debugger
     const {
       middlewareCollection,
       bindValuesToResolve,

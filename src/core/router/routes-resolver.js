@@ -60,7 +60,6 @@ class RoutesResolver {
     const callback = ctx => {
       const method = applicationRef.getRequestMethod(ctx)
       const url = applicationRef.getRequestUrl(ctx)
-      debugger
       throw new NotFoundException(`Cannot ${method} ${url}`)
     }
 

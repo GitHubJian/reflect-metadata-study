@@ -8,6 +8,7 @@ function Header(name, value) {
       [{ name, value }],
       descriptor.value
     )
+
     return descriptor
   }
 }

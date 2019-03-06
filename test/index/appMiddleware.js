@@ -1,10 +1,12 @@
 const MiddlewareImplement = require('../../src/common/implements/middleware.implement')
+const Injectable = require('../../src/common/decorators/core/injectable.decorator')
 
+@Injectable()
 class LoggerMiddleware extends MiddlewareImplement {
   resolve(...args) {
-    debugger
     return async (ctx, next) => {
-      debugger
+      console.log('Request...')
+      await next()
     }
   }
 }

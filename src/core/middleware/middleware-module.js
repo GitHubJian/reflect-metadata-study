@@ -3,6 +3,9 @@ const RoutesMapper = require('./routes-mapper')
 const RouterExceptionFilters = require('../router/router-exception-filters')
 const MiddlewareResolver = require('./resolver')
 const MiddlewareBuilder = require('./builder')
+const SharedUtils = require('../../common/utils/shared.utils')
+const RuntimeException = require('../errors/exceptions/runtime.exception')
+const InvalidMiddlewareException = require('../errors/exceptions/invalid-middleware.exception')
 
 class MiddlewareModule {
   constructor() {
@@ -24,7 +27,6 @@ class MiddlewareModule {
   }
 
   async resolveMiddleware(middlewareContainer, modules) {
-    debugger
     await Promise.all(
       [...modules.entries()].map(async ([name, module]) => {
         const instance = module.instance
@@ -41,6 +43,104 @@ class MiddlewareModule {
     if (!(middlewareBuilder instanceof MiddlewareBuilder)) return
     const config = middlewareBuilder.build()
     middlewareContainer.addConfig(config, module)
+  }
+
+  async registerMiddleware(middlewareContainer, applicationRef) {
+    const configs = middlewareContainer.getConfigs()
+    const registerAllConfigs = (module, middlewareConfig) =>
+      middlewareConfig.map(async config => {
+        await this.registerMiddlewareConfig(
+          middlewareContainer,
+          config,
+          module,
+          applicationRef
+        )
+      })
+    await Promise.all(
+      [...configs.entries()].map(async ([module, moduleConfigs]) => {
+        await Promise.all(registerAllConfigs(module, [...moduleConfigs]))
+      })
+    )
+  }
+
+  async registerMiddlewareConfig(
+    middlewareContainer,
+    config,
+    module,
+    applicationRef
+  ) {
+    const { forRoutes } = config
+    await Promise.all(
+      forRoutes.map(async routeInfo => {
+        await this.registerRouteMiddleware(
+          middlewareContainer,
+          routeInfo,
+          config,
+          module,
+          applicationRef
+        )
+      })
+    )
+  }
+
+  async registerRouteMiddleware(
+    middlewareContainer,
+    routeInfo,
+    config,
+    module,
+    applicationRef
+  ) {
+    const middlewareCollection = [].concat(config.middleware)
+    await Promise.all(
+      middlewareCollection.map(async metatype => {
+        const collection = middlewareContainer.getMiddleware(module)
+        const middleware = collection.get(metatype.name)
+        if (SharedUtils.isUndefined(middleware)) {
+          throw new RuntimeException()
+        }
+        const { instance } = middleware
+
+        await this.bindHandler(
+          instance,
+          metatype,
+          applicationRef,
+          routeInfo.method,
+          routeInfo.path
+        )
+      })
+    )
+  }
+
+  async bindHandler(instance, metatype, applicationRef, method, path) {
+    if (SharedUtils.isUndefined(instance.resolve)) {
+      throw new InvalidMiddlewareException(metatype.name)
+    }
+    const exceptionsHandler = this.routerExceptionFilter.create(
+      instance,
+      instance.resolve,
+      undefined
+    )
+    
+    const router = applicationRef.createMiddlewareFactory(method)
+    const bindWithProxy = middlewareInstance =>
+      this.bindHandlerWithProxy(
+        exceptionsHandler,
+        router,
+        middlewareInstance,
+        path
+      )
+    const resolve = instance.resolve()
+    const middleware = await resolve
+
+    bindWithProxy(middleware)
+  }
+
+  bindHandlerWithProxy(exceptionsHandler, router, middleware, path) {
+    const proxy = this.routerProxy.createProxy(middleware, exceptionsHandler)
+    const prefix = this.config.getGlobalPrefix()
+    const basePath = SharedUtils.validatePath(prefix)
+
+    router(basePath + path, proxy)
   }
 }
 

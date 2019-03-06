@@ -60,6 +60,7 @@ class Application extends ApplicationContext {
   }
 
   async registerRouter() {
+    await this.registerMiddleware(this.httpAdapter)
     const prefix = this.config.getGlobalPrefix()
     const basePath = SharedUtils.validatePath(prefix)
     this.routesResolver.resolve(this.httpAdapter, basePath)
@@ -67,8 +68,8 @@ class Application extends ApplicationContext {
 
   async registerRouterHooks() {
     this.routesResolver.registerMountRouter(this.httpAdapter)
-    this.routesResolver.registerNotFoundHandler()
-    this.routesResolver.registerExceptionHandler()
+    // this.routesResolver.registerNotFoundHandler()
+    // this.routesResolver.registerExceptionHandler()
   }
 
   use(...args) {
@@ -81,6 +82,13 @@ class Application extends ApplicationContext {
     this.httpServer.listen(port, ...args)
 
     return this.httpServer
+  }
+
+  async registerMiddleware(instance) {
+    await this.middlewareModule.registerMiddleware(
+      this.middlewareContainer,
+      instance
+    )
   }
 }
 

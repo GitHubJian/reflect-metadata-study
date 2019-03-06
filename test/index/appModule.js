@@ -3,6 +3,7 @@ const ModuleImplement = require('../../src/common/implements/module.implement')
 const AppController = require('./appController')
 const AppService = require('./appService')
 const AppMiddleware = require('./appMiddleware')
+const RequestMethodEnum = require('./../../src/common/enums/request-method.enum')
 
 @Module({
   providers: [AppService],
@@ -10,7 +11,9 @@ const AppMiddleware = require('./appMiddleware')
 })
 class AppModule extends ModuleImplement {
   configure(consumer) {
-    consumer.apply(AppMiddleware).forRoutes('/hello')
+    consumer
+      .apply(AppMiddleware)
+      .forRoutes({ path: '/hello/*', method: RequestMethodEnum.GET })
   }
 }
 

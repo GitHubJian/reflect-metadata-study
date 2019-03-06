@@ -2,11 +2,11 @@ const ExecutionContextHost = require('../helpers/execution-context.host')
 
 class RouterProxy {
   createProxy(targetCallback, exceptionsHandler) {
+    // koa-router 接口
     return async (ctx, next) => {
       try {
         await targetCallback(ctx, next)
       } catch (e) {
-        debugger
         const host = new ExecutionContextHost(ctx)
         exceptionsHandler.next(e, host)
       }

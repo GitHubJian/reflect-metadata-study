@@ -7,7 +7,6 @@ class MiddlewareResolver {
   }
 
   async resolveInstances(module, moduleName) {
-    debugger
     const middleware = this.middlewareContainer.getMiddleware(moduleName)
     await Promise.all(
       [...middleware.values()].map(async wrapper => {
