@@ -2,6 +2,8 @@ const ModuleCompiler = require('./compiler')
 const Module = require('./module')
 const RefletorService = require('../services/reflector.service')
 const ApplicationReferenceHost = require('../helpers/application-ref-host')
+const CircularDependencyException = require('../errors/exceptions/circular-dependency.exception')
+const UnknownModuleException = require('../errors/exceptions/unknown-module.exception')
 
 class Container {
   constructor(_applicationConfig) {
@@ -47,15 +49,47 @@ class Container {
     return this.modules
   }
 
+  async addRelatedModule(relatedModule, token) {
+    if (!this.modules.has(token)) {
+      return
+    }
+
+    const module = this.modules.get(token)
+    const parent = module.metatype
+    const scope = [].concat(module.scope, parent)
+    const { token: relatedModuleToken } = await this.moduleCompiler.compile(
+      relatedModule,
+      scope
+    )
+    const related = this.modules.get(relatedModuleToken)
+    module.addRelatedModule(related)
+  }
+
   addComponent(component, token) {
+    if (!component) {
+      throw new CircularDependencyException()
+    }
+
+    if (!this.modules.has(token)) {
+      throw new UnknownModuleException()
+    }
+
     const module = this.modules.get(token)
 
     return module.addComponent(component)
   }
 
   addController(controller, token) {
+    if (!this.modules.has(token)) {
+      throw new UnknownModuleException()
+    }
+
     const module = this.modules.get(token)
     module.addRoute(controller)
+  }
+
+  getReflector() {
+    return this.reflector
   }
 }
 

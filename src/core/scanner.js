@@ -1,6 +1,7 @@
 const Constants = require('../common/constants')
 const Constants2 = require('./constants')
 const SharedUtils = require('../common/utils/shared.utils')
+const CircularDependencyException = require('./errors/exceptions/circular-dependency.exception')
 
 class DependenciesScanner {
   constructor(container, metadataScanner, applicationConfig) {
@@ -18,6 +19,19 @@ class DependenciesScanner {
   async scanForModules(module, scope = [], ctxRegistry = []) {
     await this.storeModule(module, scope)
     ctxRegistry.push(module)
+
+    const modules = this.reflectMetadata(module, Constants.METADATA.MODULES)
+
+    for (const innerModule of modules) {
+      if (ctxRegistry.includes(innerModule)) {
+        continue
+      }
+      await this.scanForModules(
+        innerModule,
+        [].concat(scope, module),
+        ctxRegistry
+      )
+    }
   }
 
   async storeModule(module, scope) {
@@ -28,9 +42,19 @@ class DependenciesScanner {
     const modules = this.container.getModules()
 
     for (const [token, { metatype }] of modules) {
-      // await this.reflectRelatedModules(metatype, token, metatype.name);
+      await this.reflectRelatedModules(metatype, token, metatype.name)
       this.reflectComponents(metatype, token)
       this.reflectControllers(metatype, token)
+    }
+  }
+
+  async reflectRelatedModules(module, token, context) {
+    const modules = [
+      ...this.reflectMetadata(module, Constants.METADATA.MODULES)
+    ]
+
+    for (const related of modules) {
+      await this.storeRelatedModule(related, token, context)
     }
   }
 
@@ -66,6 +90,14 @@ class DependenciesScanner {
       Constants.GATEWAY_MIDDLEWARES
     )
     middleware.forEach(ware => this.storeComponent(ware, token))
+  }
+
+  async storeRelatedModule(related, token, context) {
+    if (SharedUtils.isUndefined(related)) {
+      throw new CircularDependencyException(context)
+    }
+
+    await this.container.addRelatedModule(related, token)
   }
 
   storeComponent(component, token) {

@@ -41,6 +41,7 @@ class FactoryStatic {
     try {
       await dependenciesScanner.scan(module)
       await instanceLoader.createInstancesOfDependencies()
+      dependenciesScanner.applyApplicationProviders();
     } catch (e) {
       console.error(e)
       console.error(e.stack)

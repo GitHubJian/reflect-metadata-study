@@ -1,11 +1,13 @@
 const ModuleRef = require('./module-ref')
 const randomStringGenerator = require('../../common/utils/random-string-generator.util.js')
+const ReflectorService = require('../services/reflector.service')
 
 class Module {
   constructor(_metatype, _scope, container) {
     this._metatype = _metatype
     this._scope = _scope
     this.container = container
+    this._relatedModules = new Set()
     this._components = new Map()
     this._injectables = new Map()
     this._routes = new Map()
@@ -19,6 +21,10 @@ class Module {
 
   get scope() {
     return this._scope
+  }
+
+  get relatedModules() {
+    return this._relatedModules
   }
 
   get components() {
@@ -45,6 +51,7 @@ class Module {
   addCoreInjectables(container) {
     this.addModuleAsComponent()
     this.addModuleRef()
+    this.addReflector(container.getReflector())
   }
 
   addModuleRef() {
@@ -65,6 +72,15 @@ class Module {
       metatype: this._metatype,
       isResolved: false,
       instance: null
+    })
+  }
+
+  addReflector(reflector) {
+    this._components.set(ReflectorService.name, {
+      name: ReflectorService.name,
+      metatype: ReflectorService,
+      isResolved: true,
+      instance: reflector
     })
   }
 
@@ -90,7 +106,11 @@ class Module {
       isResolved: false
     })
   }
-  
+
+  addRelatedModule(relatedModule) {
+    this._relatedModules.add(relatedModule)
+  }
+
   addComponent(component) {
     this._components.set(component.name, {
       name: component.name,
